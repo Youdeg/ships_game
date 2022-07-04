@@ -20,8 +20,33 @@ class World extends EventEmitter {
 
     tick() {
         for (const ship of this.ships) {
-            this.field[ship.y - 1][ship.x - 1].setColor(ship.color);
+            ship.tick();
+
+            if (ship.shot.x === 0) continue;
+            ship.shot.count -= 1;
+            if (!ship.shot.count) {
+                ship.shots += 1;
+                for (const target of this.ships) {
+                    if (target.inCell(ship.shot.x, ship.shot.y)) {
+                        target.health -= 1;
+
+                        if (target.health <= 0) {
+                            target.socket.emit("dead");
+                            this.deleteShip(target);
+                        }
+
+                        if (ship.color === target.color) {
+                            ship.badShots += 1;
+                        } else {
+                            ship.goodShots += 1;
+                        }
+                    }
+                }
+                ship.shot = {x: 0, y: 0, count: 0}
+            }
         }
+
+
         this.emit("update");
     }
 
@@ -33,12 +58,22 @@ class World extends EventEmitter {
         this.ships = this.ships.filter(el => el.id !== id);
     }
 
-    warpForSend(ship) {
+    warpForSend(playerShip) {
         const warped = [];
         for(let y = 1; y !== this.size + 1; y++){
             warped.push([])
             for(let x = 1; x !== this.size + 1; x++) {
-                warped[y - 1].push(this.field[y - 1][x - 1].warpForSend(ship));
+                let color = "none";
+                for (const ship of this.ships) {
+                    if (!ship.seeShip(playerShip)) continue;
+                    if (ship.inCell(x, y)) {
+                        color = ship.color;
+                        color = (x === ship.x && y === ship.y && ship.color === "red") ? "rgb(133, 13, 13)" : color;
+                        color = (x === ship.x && y === ship.y && ship.color === "green") ? "rgb(23,88,8)" : color;
+                        break;
+                    }
+                }
+                warped[y - 1].push(new Cell(x, y, color).warpForSend());
             }
         }
         return warped;

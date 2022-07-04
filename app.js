@@ -7,14 +7,17 @@ import { Server } from "socket.io";
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+import localtunnel from 'localtunnel';
 
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+global.worldSize = 10;
+
 import World from "./Game/World.js";
-const world = new World(10, 10);
+const world = new World(global.worldSize, global.worldSize);
 
 app.use(cors({credentials: true, origin: true}));
 app.use(express.json());
@@ -27,13 +30,25 @@ app.get("/", (req, res) => {
 import Ship from "./Game/Ship.js";
 
 io.on('connection', (socket) => {
-    const ship = new Ship(r(1, 10), r(1, 10), 1, "red");
+    const color = (r(0, 1)) ? "red" : "green";
+    const ship = new Ship(r(1, 10), r(1, 10), 3, color);
+    ship.socket = socket;
     world.newShip(ship);
 
-    socket.emit("updateWorld", world.warpForSend(ship));
+    socket.emit("updateWorld", world.warpForSend(ship), ship.wantTo, ship.shot, {health: ship.health, maxHealth: ship.size,
+        goodShots: ship.goodShots, badShots: ship.badShots, shots: ship.shots});
+
+    socket.on("wantTo", (to) => {
+        ship.wantTo = to;
+    })
+
+    socket.on("shot", (x, y) => {
+        ship.shot = {x: x, y: y, count: 3};
+    })
 
     world.on("update", () => {
-        socket.emit("updateWorld", world.warpForSend(ship));
+        socket.emit("updateWorld", world.warpForSend(ship), ship.wantTo, ship.shot, {health: ship.health, maxHealth: ship.size,
+            goodShots: ship.goodShots, badShots: ship.badShots, shots: ship.shots});
     })
 
     socket.on( "disconnect", () => {
@@ -43,6 +58,16 @@ io.on('connection', (socket) => {
 
 
 server.listen(5000, async () => {
+    await (async () => {
+        const tunnel = await localtunnel({port: 5000});
+
+        console.log(tunnel.url);
+
+        tunnel.on('close', () => {
+            // tunnels are closed
+        });
+    })();
+
     console.log('listening on *:5000');
 });
 

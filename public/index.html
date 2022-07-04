@@ -16,10 +16,67 @@
             background-image: url("/images/water.jpg");
             background-repeat: repeat;
         }
+
+        .blocks {
+            display: flex;
+        }
+
+        .block {
+            height: 100vh;
+            width: 100vh;
+        }
+
+        .arrow {
+            height: 15vh;
+            width: 15vh;
+            font-size: 15vh;
+
+            cursor: pointer;
+        }
+
+        .block {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .red {
+            color: red;
+        }
+
+        .arrows {
+            display: flex;
+        }
+
+        .shot {
+            font-size: 15vh;
+            text-align: center;
+        }
+
+        .health, .shots {
+            font-size: 4vh;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+<div class="blocks">
 <canvas class="game"></canvas>
+    <div class="block">
+        <div class="arrows">
+        <div class="left arrow" onclick="left()">↺</div><div class="right arrow" onclick="right()">↻</div>
+        </div>
+        <div class="shot">
+            (0;0)
+        </div>
+        <div class="health">
+            ЗДОРОВЬЕ - 0/0
+        </div>
+        <div class="shots">
+            ВЫСТРЕЛЫ/ХОРОШИЕ/ПЛОХИЕ - 0/0/0
+        </div>
+    </div>
+</div>
 </body>
 <script src="script.js"></script>
 </html>

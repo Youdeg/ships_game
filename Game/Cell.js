@@ -9,9 +9,8 @@ class Cell {
         this.color = color;
     }
 
-    warpForSend(ship) {
+    warpForSend() {
         let color = this.color;
-        if (this.x === ship.x && this.y === ship.y) color = "green"
         return {x: this.x, y:  this.y, color: color};
     }
 }

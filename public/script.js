@@ -1,3 +1,7 @@
+let to = null;
+let socket;
+let shot = {x: 0, y: 0, count: 0}
+
 class Cell {
     constructor(x, y, color) {
         this.x = x;
@@ -29,7 +33,7 @@ class World {
     }
 }
 
-const App = new World(10, 10);
+const App = new World(10);
 
 let canvas, ctx;
 
@@ -40,17 +44,59 @@ window.onload = function () {
     canvas.width = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight;
 
-    const socket = io();
+    socket = io();
 
-    socket.on("updateWorld", (field) => {
+    canvas.addEventListener('mouseup', function (e) {
+        let x = e.pageX - e.target.offsetLeft,
+            y = e.pageY - e.target.offsetTop;
+
+        for (let i = 1; i <= App.size; i++) {
+            const j = i * canvas.height / App.field.length;
+            if (x <= j) {
+                x = i;
+                break
+            }
+        }
+
+        for (let i = 1; i <= App.size; i++) {
+            const j = i * canvas.height / App.field.length;
+            if (y <= j) {
+                y = i;
+                break
+            }
+        }
+
+        shot = {x: x, y: y, count: 3}
+        document.getElementsByClassName("shot")[0].innerHTML = `(${shot.x};${shot.y}) через ${shot.count} ходов`;
+        socket.emit("shot", x, y);
+    });
+
+    socket.on("updateWorld", (field, wantTo, shotTo, info) => {
         App.updateField(field);
         updateField(ctx, canvas);
+
+        if (wantTo === null) {
+            document.getElementsByClassName("left")[0].classList.remove("red");
+            document.getElementsByClassName("right")[0].classList.remove("red");
+            to = null;
+        }
+
+        shot = shotTo
+        document.getElementsByClassName("shot")[0].innerHTML = `(${shot.x};${shot.y}) через ${shot.count} ходов`;
+        document.getElementsByClassName("health")[0].innerHTML = `ЗДОРОВЬЕ - ${info.health}/${info.maxHealth} ед.`;
+        document.getElementsByClassName("shots")[0].innerHTML = `ВЫСТРЕЛЫ/ХОРОШИЕ/ПЛОХИЕ - ${info.shots}/${info.goodShots}/${info.badShots}`;
+    })
+
+    socket.on("dead", () => {
+        alert("Вы проиграли!");
+        socket.disconnect();
     })
 
     updateField(ctx, canvas);
 }
 
 function updateField(ctx, canvas) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     for (let y = 1; y !== App.field.length + 1; y++) {
         for (let x = 1; x !== App.field[y - 1].length + 1; x++) {
             ctx.beginPath();
@@ -67,7 +113,42 @@ function updateField(ctx, canvas) {
                 ctx.fillStyle = App.field[y - 1][x - 1].color;
                 ctx.fill();
             }
+
             ctx.stroke();
+
+            ctx.beginPath();
+            ctx.fillStyle = 'black';
+            ctx.font = "16px serif";
+            ctx.fillText(`(${x};${y})`, (canvas.width / App.field[y - 1].length * (x - 1)) + 3, (canvas.height / App.field.length * (y - 1)) + 15);
+            ctx.closePath();
         }
     }
+}
+
+function right() {
+    if (to === "right") {
+        document.getElementsByClassName("right")[0].classList.remove("red");
+        to = "null";
+        socket.emit("wantTo", to);
+        return;
+    }
+    document.getElementsByClassName("left")[0].classList.remove("red");
+    document.getElementsByClassName("right")[0].classList.add("red");
+
+    to = "right";
+    socket.emit("wantTo", to);
+}
+
+function left() {
+    if (to === "left") {
+        document.getElementsByClassName("left")[0].classList.remove("red");
+        to = "null";
+        socket.emit("wantTo", to);
+        return;
+    }
+    document.getElementsByClassName("right")[0].classList.remove("red");
+    document.getElementsByClassName("left")[0].classList.add("red");
+
+    to = "left";
+    socket.emit("wantTo", to);
 }
