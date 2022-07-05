@@ -30,8 +30,7 @@ app.get("/", (req, res) => {
 import Ship from "./Game/Ship.js";
 
 io.on('connection', (socket) => {
-    const color = (r(0, 1)) ? "red" : "green";
-    const ship = new Ship(r(1, 10), r(1, 10), 3, color);
+    const ship = new Ship(r(1, 10), r(1, 10), r(1, 5), r(1, 2));
     ship.socket = socket;
     world.newShip(ship);
 
@@ -43,7 +42,7 @@ io.on('connection', (socket) => {
     })
 
     socket.on("shot", (x, y) => {
-        ship.shot = {x: x, y: y, count: 3};
+        ship.shot = {x: x, y: y, count: 4};
     })
 
     world.on("update", () => {

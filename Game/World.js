@@ -14,6 +14,7 @@ class World extends EventEmitter {
         }
 
         this.ships = [];
+        this.setMaxListeners(1000);
 
         setInterval(this.tick.bind(this), 1000);
     }
@@ -35,7 +36,7 @@ class World extends EventEmitter {
                             this.deleteShip(target);
                         }
 
-                        if (ship.color === target.color) {
+                        if (ship.team === target.team) {
                             ship.badShots += 1;
                         } else {
                             ship.goodShots += 1;
@@ -67,9 +68,16 @@ class World extends EventEmitter {
                 for (const ship of this.ships) {
                     if (!ship.seeShip(playerShip)) continue;
                     if (ship.inCell(x, y)) {
-                        color = ship.color;
-                        color = (x === ship.x && y === ship.y && ship.color === "red") ? "rgb(133, 13, 13)" : color;
-                        color = (x === ship.x && y === ship.y && ship.color === "green") ? "rgb(23,88,8)" : color;
+                        if (ship.id === playerShip.id) {
+                            color = "blue"
+                        } else if (ship.team === playerShip.team) {
+                            color = "green"
+                        } else {
+                            color = "red"
+                        }
+                        color = (x === ship.x && y === ship.y && color === "red") ? "rgb(133, 13, 13)" : color;
+                        color = (x === ship.x && y === ship.y && color === "green") ? "rgb(23,88,8)" : color;
+                        color = (x === ship.x && y === ship.y && color === "blue") ? "rgb(7,11,125)" : color;
                         break;
                     }
                 }

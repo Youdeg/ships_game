@@ -1,10 +1,10 @@
 class Ship {
-    constructor(x, y, size, color, to = "up") {
+    constructor(x, y, size, team, to = "up") {
         this.id = Date.now() + r(1, 2000);
         this.x = x;
         this.y = y;
         this.size = size;
-        this.color = color;
+        this.team = team;
         this.to = to;
         this.wantTo = null;
         this.shot = {x: 0, y: 0, count: 0};
@@ -128,7 +128,7 @@ class Ship {
     }
 
     seeShip(ship) {
-        if (this.color === ship.color) return true;
+        if (this.team === ship.team) return true;
         const len = Math.ceil(Math.sqrt(Math.pow(this.x - ship.x, 2) + Math.pow(this.y - ship.y, 2)));
         if (len <= 3) return true;
         return false;

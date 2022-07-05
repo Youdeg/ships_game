@@ -51,7 +51,7 @@ window.onload = function () {
             y = e.pageY - e.target.offsetTop;
 
         for (let i = 1; i <= App.size; i++) {
-            const j = i * canvas.height / App.field.length;
+            const j = i * canvas.height / App.size;
             if (x <= j) {
                 x = i;
                 break
@@ -59,7 +59,7 @@ window.onload = function () {
         }
 
         for (let i = 1; i <= App.size; i++) {
-            const j = i * canvas.height / App.field.length;
+            const j = i * canvas.height / App.size;
             if (y <= j) {
                 y = i;
                 break
@@ -67,7 +67,6 @@ window.onload = function () {
         }
 
         shot = {x: x, y: y, count: 3}
-        document.getElementsByClassName("shot")[0].innerHTML = `(${shot.x};${shot.y}) через ${shot.count} ходов`;
         socket.emit("shot", x, y);
     });
 
